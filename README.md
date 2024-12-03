@@ -15,6 +15,6 @@ docker run -p 3000:3000 -p 9100:9100 username/image-name
 
 To pull from docker and use the app
 ```bash
-docker pull anshs/orch-app:v2
-docker run -p 3000:3000 -p 9100:9100 anshs/orch-app:v2
+docker pull anshs/orch-app:v3
+docker run -p 3000:3000 -p 9100:9100 anshs/orch-app:v3
 ```
