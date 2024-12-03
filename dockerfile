@@ -1,4 +1,4 @@
-FROM node:18
+FROM --platform=linux/amd64 node:18
 
 # Copy Next.js app package files and install dependencies
 WORKDIR /app

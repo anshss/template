@@ -6,7 +6,6 @@ const app = express();
 app.use(express.json());
 require('dotenv').config();
 
-console.log(process.env.MONITOR_API_KEY)
 let MONITOR_WEBHOOK_URL = ""
 
 // Basic authentication middleware
