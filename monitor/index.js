@@ -2,9 +2,12 @@
 const express = require('express');
 const os = require('os');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-
 const app = express();
 app.use(express.json());
+require('dotenv').config();
+
+console.log(process.env.MONITOR_API_KEY)
+let MONITOR_WEBHOOK_URL = ""
 
 // Basic authentication middleware
 const authMiddleware = (req, res, next) => {
@@ -56,8 +59,26 @@ function getProcessMetrics() {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-    res.json({ status: 'healthy', timestamp: new Date() });
+    res.json({ status: 'healthy', timestamp: new Date(), webhookUrl: MONITOR_WEBHOOK_URL },);
 });
+
+// Set webhook URL endpoint
+app.post('/set-webhook-url', authMiddleware, (req, res) => {
+    const { url } = req.body;
+    
+    if (!url || typeof url !== 'string') {
+      return res.status(400).json({ error: 'Valid URL required' });
+    }
+  
+    try {
+      new URL(url); // Validate URL format
+      MONITOR_WEBHOOK_URL = url;
+      console.log("MONITOR_WEBHOOK_URL updated, ", MONITOR_WEBHOOK_URL)
+      res.status(200).json({ message: 'Webhook URL updated successfully' });
+    } catch (err) {
+      res.status(400).json({ error: 'Invalid URL format' });
+    }
+  });
 
 // Metrics endpoint with authentication
 app.get('/metrics', authMiddleware, async (req, res) => {
@@ -68,16 +89,16 @@ app.get('/metrics', authMiddleware, async (req, res) => {
         };
         
         // Send metrics to external monitoring service if configured
-        if (process.env.MONITOR_WEBHOOK_URL) {
+        if (MONITOR_WEBHOOK_URL) {
             try {
-                await fetch(process.env.MONITOR_WEBHOOK_URL, {
+                await fetch(MONITOR_WEBHOOK_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'x-api-key': process.env.MONITOR_API_KEY
                     },
                     body: JSON.stringify({
-                        instanceId: process.env.INSTANCE_ID || os.hostname(),
+                        instanceId: os.hostname(),
                         metrics
                     })
                 });
@@ -92,7 +113,7 @@ app.get('/metrics', authMiddleware, async (req, res) => {
     }
 });
 
-const PORT = process.env.MONITOR_PORT || 9100;
+const PORT = 9100;
 app.listen(PORT, () => {
     console.log(`Monitoring service running on port ${PORT}`);
 });

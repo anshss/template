@@ -1,8 +1,7 @@
 FROM node:18
 
-WORKDIR /app
-
 # Copy Next.js app package files and install dependencies
+WORKDIR /app
 COPY app/package*.json ./app/
 WORKDIR /app/app
 RUN npm install
@@ -21,8 +20,8 @@ COPY monitor/index.js ./
 # Create start script
 WORKDIR /app
 RUN echo '#!/bin/sh\n\
-cd /app/app && node server.js & \n\
-cd /app/monitor && node index.js' > start.sh
+cd /app/app && npm run dev & \n\
+cd /app/monitor && npm start' > start.sh
 
 RUN chmod +x start.sh
 
